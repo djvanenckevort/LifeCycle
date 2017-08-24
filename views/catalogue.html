@@ -18,15 +18,15 @@
 	}
 	
 	function variableHarmonisation(variable) {
-		$("#harmonisations").replaceWith("<table id=\"harmonisations\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table>")
+		$("#harmonisations").replaceWith("<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table>")
 		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Harmonisations?q=target==" + variable, function(response) {
 			for (i = 0; i < response.items.length; i++) {
 				var item = response.items[i]
 				var cohort = item.sourceLabel
-				// var sources = item.sources.map
+				var sources = item.sources.map(function(item) { return item.variable }).join(", ")
 				var description = item.description
 				var status = item.status.label
-				$("#harmonisations").append("<tr><td>" + cohort + "</td><td>Variables</td><td>" + description + "</td><td>" + status + "</td></tr>")
+				$("#harmonisations").append("<tr><td>" + cohort + "</td><td>" + sources + "</td><td>" + description + "</td><td>" + status + "</td></tr>")
 			}			
 		});
 	}
