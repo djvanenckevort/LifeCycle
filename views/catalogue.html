@@ -1,0 +1,57 @@
+<h3>Catalogue</h3>
+<script type="text/javascript" src="https://molgenis88.gcc.rug.nl/js/jquery.fancytree.min.js"></script>
+<div>
+<ul id="tree" class="ui-fancytree fancytree-container fancytree-treefocus">
+	<li>About</li>
+	<li>Variables
+	<ul id="variables">
+	</ul>
+	</li>
+</ul>
+</div>
+<script type="text/javascript">
+	function addCategoryItem(id, item) {
+		$(id).append("<li>" + item.label + "<ul id=" + item.id + " ></ul></li>")
+	}
+	
+	function addSources(response) {
+		for (i = 0; i < response.items.length; i++) {
+			var item = response.items[i]
+			var target = item.target.variable
+			var cohort = item.cohort.label
+			$("#" + target).append("<li>" + cohort + "</li>")
+		}
+	}
+
+	function getHarmonisations(item) {
+		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Harmonisations?q=target==" + item, addSources)		
+	}
+	
+	function addVariables(response) {
+		for (i = 0; i < response.items.length; i++) {
+			var item = response.items[i]
+			var category = item.category.id
+			var variable = item.variable
+			$("#" + category).append("<li>" + variable + "<ul  id=" + variable + "></ul></li>")
+			getHarmonisations(variable)
+		}
+	}
+	
+	function getVariables(item) {
+		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_CoreVariables?q=category==" + item.id, addVariables)
+	}
+	
+	function buildMenu(response) {
+		for (i = 0; i < response.items.length; i++) {
+			var item = response.items[i]
+			if (typeof item.parent !== 'undefined') {
+				addCategoryItem("#" + item.parent.id, item)
+				getVariables(item)
+			} else {
+				addCategoryItem("#variables", item)
+				getVariables(item)
+			}
+		}
+	}
+	$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Categories", buildMenu);
+</script>
