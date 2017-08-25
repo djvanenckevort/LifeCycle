@@ -13,26 +13,30 @@
 	<div id="content-panel"></div>
 </div>
 <script type="text/javascript">
+	function acceptableValues(variable) {
+		
+	}
 	function variableDescription(variable) {
 		$.getJSON("/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) {
-			var innerHtml = "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
-			innerHtml += "<tr><td>Name: </td><td>" + variable.name + "</td></tr>"
-			innerHtml += "<tr><td>Category: </td><td>" + variable.category.label + "</td></tr>"
-			innerHtml += "<tr><td>Description: </td><td>" + variable.description + "</td></tr>"
+			var innerHtml = "<h4>" + variable.name + " description</h4>"
+			innerHtml += "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
+			innerHtml += "<tr><td>Variable: </td><td>" + variable.variable + "</td></tr>"
 			if (variable.values.length > 0) {
-				var values = variable.values.map(function(item) { return item.label }).join(", ")
-				innerHtml += "<tr><td>Values: </td><td>" + values + "</td></tr>"
+				var values = variable.values.map(function(item) { return item.code + ": " + item.value }).join(", ")
+				innerHtml += "<tr><td>Acceptable values: </td><td>" + values + "</td></tr>"
 			}
 			innerHtml += "<tr><td>Data type: </td><td>" + variable.datatype.label + "</td></tr>"
+			innerHtml += "<tr><td>Description: </td><td>" + variable.description + "</td></tr>"
+			innerHtml += "<tr><td>Comments: </td><td>" + variable.comments + "</td></tr>"
 			innerHtml += "</table>"
 			$("#description").replaceWith(innerHtml)
 		});
 		
 	}
 	
-	function variableHarmonisation(variable) {
-		$("#harmonisations").replaceWith("<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table>")
-		$.getJSON("/api/v2/LifeCycle_Harmonisations?q=target==" + variable, function(response) {
+	function variableHarmonization(variable) {
+		$("#harmonisations").replaceWith("<h4>Harmonizations</h4><table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table>")
+		$.getJSON("/api/v2/LifeCycle_Harmonizations?q=target==" + variable, function(response) {
 			for (i = 0; i < response.items.length; i++) {
 				var item = response.items[i]
 				var cohort = item.sourceLabel
@@ -45,9 +49,9 @@
 	}
 	
 	function variablePanel(variable) {
-		$("#content-panel").replaceWith('<div id="content-panel"><h4>' + variable + ' description</h4><div id="description"></div><h4>Harmonisations</h4><div id="harmonisations"></div></div>')
+		$("#content-panel").replaceWith('<div id="content-panel"><div id="description"></div><div id="harmonisations"></div></div>')
 		variableDescription(variable)
-		variableHarmonisation(variable)
+		variableHarmonization(variable)
 	}
 	function addCategoryItem(id, item) {
 		$(id).append("<li>" + item.label + "<ul id=" + item.id + " ></ul></li>")
@@ -62,17 +66,18 @@
 		}
 	}
 
-	function getHarmonisations(item) {
-		$.getJSON("/api/v2/LifeCycle_Harmonisations?q=target==" + item, addSources)		
+	function getHarmonizations(item) {
+		$.getJSON("/api/v2/LifeCycle_Harmonizations?q=target==" + item, addSources)		
 	}
 	
 	function addVariables(response) {
 		for (i = 0; i < response.items.length; i++) {
 			var item = response.items[i]
 			var category = item.category.id
-			var variable = item.variable
-			$("#" + category).append("<li><span onclick='variablePanel(\"" + variable + "\")'>" + variable + "</span><ul  id=" + variable + "></ul></li>")
-			getHarmonisations(variable)
+			var variable = item.name
+			var id = item.variable
+			$("#" + category).append("<li><span onclick='variablePanel(\"" + id + "\")'>" + variable + "</span><ul  id=" + variable + "></ul></li>")
+			getHarmonizations(id)
 		}
 	}
 	
