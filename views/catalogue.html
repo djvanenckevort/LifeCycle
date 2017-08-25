@@ -1,5 +1,5 @@
 <h3>Catalogue</h3>
-<script type="text/javascript" src="https://molgenis88.gcc.rug.nl/js/jquery.fancytree.min.js"></script>
+<script type="text/javascript" src="/js/jquery.fancytree.min.js"></script>
 <div class="col-md-3">
 <ul id="tree" class="ui-fancytree fancytree-container fancytree-treefocus">
 	<li>About</li>
@@ -14,7 +14,7 @@
 </div>
 <script type="text/javascript">
 	function variableDescription(variable) {
-		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) {
+		$.getJSON("/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) {
 			var innerHtml = "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
 			innerHtml += "<tr><td>Name: </td><td>" + variable.name + "</td></tr>"
 			innerHtml += "<tr><td>Category: </td><td>" + variable.category.label + "</td></tr>"
@@ -32,7 +32,7 @@
 	
 	function variableHarmonisation(variable) {
 		$("#harmonisations").replaceWith("<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table>")
-		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Harmonisations?q=target==" + variable, function(response) {
+		$.getJSON("/api/v2/LifeCycle_Harmonisations?q=target==" + variable, function(response) {
 			for (i = 0; i < response.items.length; i++) {
 				var item = response.items[i]
 				var cohort = item.sourceLabel
@@ -63,7 +63,7 @@
 	}
 
 	function getHarmonisations(item) {
-		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Harmonisations?q=target==" + item, addSources)		
+		$.getJSON("/api/v2/LifeCycle_Harmonisations?q=target==" + item, addSources)		
 	}
 	
 	function addVariables(response) {
@@ -77,7 +77,7 @@
 	}
 	
 	function getVariables(item) {
-		$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_CoreVariables?q=category==" + item.id, addVariables)
+		$.getJSON("/api/v2/LifeCycle_CoreVariables?q=category==" + item.id, addVariables)
 	}
 	
 	function buildMenu(response) {
@@ -92,5 +92,5 @@
 			}
 		}
 	}
-	$.getJSON("https://molgenis88.gcc.rug.nl/api/v2/LifeCycle_Categories", buildMenu);
+	$.getJSON("/api/v2/LifeCycle_Categories", buildMenu);
 </script>
