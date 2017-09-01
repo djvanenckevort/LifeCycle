@@ -144,7 +144,7 @@
 			html +='</div>'			
 		}
 		html +='</div>'
-		$	("#content-panel").replaceWith(html)
+		$("#content-panel").replaceWith(html)
 	}
 	
 	function showDetails(event, data) {
@@ -164,6 +164,9 @@
 			$.when(futureDescription, futureHarmonization, futureCohorts).then(createDetailsPanel)
 		}
 	}
+	
+	// Load additional CSS
+	$('head').append( $('<link rel="stylesheet" type="text/css" />').attr('href', '/css/ui.fancytree.min.css') );
 	
 	$.getJSON("/api/v2/LifeCycle_Groups", function(response){
 		var menu = createMenu(response.items, '')
