@@ -110,51 +110,39 @@
 		row += "</tr>"
 		return row
 	}
-
-	function variableDescription(variable, future) {
-		$.getJSON("/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) {
-			var innerHtml = "<h4>" + variable.label + " description</h4>"
-			innerHtml += "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
-			innerHtml += tableRow(["Variable:", variable.variable]);
-			if (variable.values.length > 0) {
-				var values = variable.values.map(function(item) { return item.code + ": " + item.value }).join(", ")
-				innerHtml += tableRow(["Acceptable values:", values]);
-			}
-			innerHtml += tableRow(["Data type:", variable.datatype.label]);
-			innerHtml += tableRow(["Description:", variable.description]);
-			if (variable.comments !== undefined) {
-				innerHtml += tableRow(["Comments:", variable.comments]);
-			}
-			innerHtml += "</table>"
-			future.resolve(innerHtml)
-		});
-		
-	}
 	
-	function variableHarmonization(variable, future) {
-		$.getJSON("/api/v2/LifeCycle_Harmonizations?q=target==" + variable, function(response) {
-			var html = response.items.map(function(item) {
-				var sources = item.sources.map(function(item) { return item.variable }).join(", ");
-				return tableRow([item.sourceLabel, sources, item.description, item.status.label]);
-			}).join("");
-			future.resolve(html);
-		});
-	}
-	
-	function createDetailsPanel(description, harmonization) {
+	function createDetailsPanel(variable, harmonizations, cohorts) {
 		var html = '<div id="content-panel">'
 		html += '<div id="description">'
-		html += description
+		html += "<h4>" + variable.label + " description</h4>"
+		html += "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
+		html += tableRow(["Variable:", variable.variable]);
+		if (variable.values.length > 0) {
+			var values = variable.values.map(function(item) { return item.code + ": " + item.value }).join(", ")
+			html += tableRow(["Acceptable values:", values]);
+		}
+		html += tableRow(["Data type:", variable.datatype.label]);
+		html += tableRow(["Description:", variable.description]);
+		if (variable.comments !== undefined) {
+			html += tableRow(["Comments:", variable.comments]);
+		}
+		html += tableRow(["Status:", harmonizations.length + "/" + cohorts.length])
+		html += "</table>"
 		html += '</div>'
-		html += '<div style=\"overflow-y: scroll; height:400px;\">'
-		html += '<h4>Harmonizations</h4>'
-		html += '<table id=\"harmonizations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">'
-		html += '<thead>'
-		html += tableRow(['Cohort', 'Variables', 'Description', 'Status'])
-		html += '</thead>'
-		html += harmonization
-		html +='</table>'
-		html +='</div>'
+		if (harmonizations.length > 0) {
+			html += '<div style=\"overflow-y: scroll; height:400px;\">'
+			html += '<h4>Harmonizations</h4>'
+			html += '<table id=\"harmonizations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">'
+			html += '<thead>'
+			html += tableRow(['Cohort', 'Variables', 'Description', 'Status']);
+			html += '</thead>'
+			html += harmonizations.map(function(item) {
+					var sources = item.sources.map(function(item) { return item.variable }).join(", ");
+					return tableRow([item.sourceLabel, sources, item.description, item.status.label]);
+				}).join("");
+			html +='</table>'
+			html +='</div>'			
+		}
 		html +='</div>'
 		$	("#content-panel").replaceWith(html)
 	}
@@ -163,11 +151,17 @@
 		var keys = data.node.key.split("#")
 		if (data.node.isFolder() == false) {
 			var variable = keys[keys.length -1];
+			
 			var futureDescription = $.Deferred();
+			$.getJSON("/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) { futureDescription.resolve(variable); });
+			
 			var futureHarmonization = $.Deferred();
-			variableDescription(variable, futureDescription);
-			variableHarmonization(variable, futureHarmonization);
-			$.when(futureDescription, futureHarmonization).then(createDetailsPanel)
+			$.getJSON("/api/v2/LifeCycle_Harmonizations?q=target==" + variable, function(response) { futureHarmonization.resolve(response.items); });
+			
+			var futureCohorts = $.Deferred()
+			$.getJSON("/api/v2/LifeCycle_Cohorts", function(response) { futureCohorts.resolve(response.items); });
+			
+			$.when(futureDescription, futureHarmonization, futureCohorts).then(createDetailsPanel)
 		}
 	}
 	
