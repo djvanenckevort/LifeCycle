@@ -7,26 +7,40 @@
 </div>
 <script type="text/javascript" src="/js/jquery.fancytree.min.js"></script>
 <script type="text/javascript">
-	
+	function buildKey(path, id) {
+		var key
+		if (path === '') {
+			key = id
+		} else {
+			key = path + '#' + id
+		}
+		return key
+	}
+
 	function createMenu(items, path) {
 		var menu = [];
 		items.sort(function(lhs, rhs) { return lhs.position - rhs.position });
 		for (i = 0; i < items.length; i++) {
 			var item = items[i];
-			if (path === '') {
-				key = item.id
+			if (item.variable !== undefined) {
+				menu[i] = {
+					title: item.label,
+					key: buildKey(path, item.id),
+					lazy: false,
+					folder: false
+				}
 			} else {
-				key = path + '#' + item.id
-			}
-			menu[i] = {
-				title: item.label,
-				key: key,
-				lazy: true,
-				folder: true
+				menu[i] = {
+					title: item.label,
+					key: buildKey(path, item.id),
+					lazy: true,
+					folder: true
+				}
 			}
 		}
 		return menu;
 	}
+	
 	function getCategoryById(categories, id) {
 		for (i = 0; i < categories.length; i++) {
 			if (categories[i].id === id) {
@@ -35,48 +49,63 @@
 		}
 		return null
 	}
+	
+	function buildPath(keys) {
+		var path = "/api/v2/LifeCycle_CoreVariables";
+		switch (keys.length) {
+		case 1:
+			path += "?q=group==" + keys[0];
+			break;
+		case 2:
+			path += "?q=group==" + keys[0] + ";category==" + keys[1];
+			break;
+		default:
+			console.log("Unexpected tree depth")
+		}
+		return path;
+	}
+	
+	function selectMenuItem(item, categories) {
+		if (item.category !== undefined) {
+			var category = getCategoryById(categories, item.category.id);
+			if (category !== null) {
+				return category
+			}
+		}
+		return item		
+	}
 
-	function loadMenu(event, data) {
+	function lazyLoadMenu(event, data) {
 		var node = data.node
 		var path = node.key
 		var keys = path.split("#")
 		var depth = keys.length
 		var deferred = $.Deferred()
 		data.result = deferred.promise()
-		switch (depth) {
-		case 1:
-			$.getJSON("/api/v2/LifeCycle_Categories", function(response) {
-				$.getJSON("/api/v2/LifeCycle_CoreVariables?q=group==" + keys[0], function(variables) {
-					var categories = []
+		$.getJSON("/api/v2/LifeCycle_Categories", function(categories) {
+			url = buildPath(keys)
+			$.getJSON(url, function(variables) {
+				var menuItems = []
+				if (keys.length === 2) {
+					menuItems = variables.items
+				} else {
 					for (i = 0; i < variables.items.length; i++) {
-						if (variables.items[i].category !== undefined) {
-							var category = getCategoryById(response.items, variables.items[i].category.id);
-							if (category !== null && categories.indexOf(category) == -1) {
-								categories[categories.length] = category
-							}
-						} else {
-							categories[categories.length] = variables.items[i]
+						var menuItem = selectMenuItem(variables.items[i], categories.items)
+						if (menuItems.indexOf(menuItem) == -1) {
+							menuItems[menuItems.length] = menuItem
 						}
-					}
-					deferred.resolve(createMenu(categories, path));
-				});
+					}					
+				}
+				deferred.resolve(createMenu(menuItems, path));
 			});
-			break;
-		case 2:
-			var promise =	$.getJSON("/api/v2/LifeCycle_CoreVariables?q=group==" + keys[0] + ";category==" + keys[1], function(response) {
-				deferred.resolve(createMenu(response.items, path))
-			});
-			break;
-		default:
-			console.log("An error occurred while fetch data.");
-		}
+		});
 	}
 	
 	$.getJSON("/api/v2/LifeCycle_Groups", function(response){
 		var menu = createMenu(response.items, '')
 		$("#tree").fancytree({
 			source: menu,
-			lazyLoad: loadMenu
+			lazyLoad: lazyLoadMenu
 		})
 	})
 </script>
