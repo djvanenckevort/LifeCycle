@@ -106,9 +106,7 @@
 			return null
 		}
 		var row = "<tr>"
-		for (i = 0; i < values.length; i++) {
-			row += "<td>" + values[i] + "</td>"
-		}
+		row += values.map(function(value) { return "<td>" + value + "</td>"}).join("")
 		row += "</tr>"
 		return row
 	}
@@ -138,7 +136,7 @@
 			var html = response.items.map(function(item) {
 				var sources = item.sources.map(function(item) { return item.variable }).join(", ");
 				return tableRow([item.sourceLabel, sources, item.description, item.status.label]);
-			});
+			}).join("");
 			future.resolve(html);
 		});
 	}
@@ -178,7 +176,9 @@
 		$("#tree").fancytree({
 			source: menu,
 			lazyLoad: lazyLoadMenu,
-			activate: showDetails
+			activate: showDetails,
+			extraClasses: 'molgenis-tree',
+			icon: true
 		})
 	})
 </script>
