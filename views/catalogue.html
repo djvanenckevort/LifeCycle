@@ -113,7 +113,7 @@
 		return row
 	}
 
-	function variableDescription(variable) {
+	function variableDescription(variable, future) {
 		$.getJSON("/api/v2/LifeCycle_CoreVariables/" + variable, function(variable) {
 			var innerHtml = "<h4>" + variable.label + " description</h4>"
 			innerHtml += "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
@@ -128,29 +128,48 @@
 				innerHtml += tableRow(["Comments:", variable.comments]);
 			}
 			innerHtml += "</table>"
-			$("#description").replaceWith(innerHtml)
+			future.resolve(innerHtml)
 		});
 		
 	}
 	
-	function variableHarmonization(variable) {
-		$("#harmonisations").replaceWith("<div style=\"overflow-y: scroll; height:400px;\"><h4>Harmonizations</h4><table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\"><thead><tr><td>Cohort</td><td>Variables</td><td>Description</td><td>Status</td></tr></thead></table></div>")
+	function variableHarmonization(variable, future) {
 		$.getJSON("/api/v2/LifeCycle_Harmonizations?q=target==" + variable, function(response) {
-			for (i = 0; i < response.items.length; i++) {
-				var item = response.items[i]
-				var sources = item.sources.map(function(item) { return item.variable }).join(", ")
-				$("#harmonisations").append(tableRow([item.sourceLabel, sources, item.description, item.status.label]))
-			}			
+			var html = response.items.map(function(item) {
+				var sources = item.sources.map(function(item) { return item.variable }).join(", ");
+				return tableRow([item.sourceLabel, sources, item.description, item.status.label]);
+			});
+			future.resolve(html);
 		});
+	}
+	
+	function createDetailsPanel(description, harmonization) {
+		var html = '<div id="content-panel">'
+		html += '<div id="description">'
+		html += description
+		html += '</div>'
+		html += '<div style=\"overflow-y: scroll; height:400px;\">'
+		html += '<h4>Harmonizations</h4>'
+		html += '<table id=\"harmonizations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">'
+		html += '<thead>'
+		html += tableRow(['Cohort', 'Variables', 'Description', 'Status'])
+		html += '</thead>'
+		html += harmonization
+		html +='</table>'
+		html +='</div>'
+		html +='</div>'
+		$	("#content-panel").replaceWith(html)
 	}
 	
 	function showDetails(event, data) {
 		var keys = data.node.key.split("#")
 		if (data.node.isFolder() == false) {
-		$	("#content-panel").replaceWith('<div id="content-panel"><div id="description"></div><div id="harmonisations"></div></div>')
 			var variable = keys[keys.length -1];
-			variableDescription(variable);
-			variableHarmonization(variable);
+			var futureDescription = $.Deferred();
+			var futureHarmonization = $.Deferred();
+			variableDescription(variable, futureDescription);
+			variableHarmonization(variable, futureHarmonization);
+			$.when(futureDescription, futureHarmonization).then(createDetailsPanel)
 		}
 	}
 	
