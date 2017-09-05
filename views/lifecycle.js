@@ -63,12 +63,12 @@ function resolve(data) {
 }
 
 function makeGroup(item) {
-	alert(item.group.label);
 	return {
 		title: item.group.label,
 		key: item.group.id,
 		folder: true,
-		children: []
+		children: [],
+		type: 'LifeCycle_Group'
 	};
 }
 
@@ -76,22 +76,22 @@ function makeCategory(item) {
 	if (item.category === undefined) {
 		return null
 	}
-	alert(item.category.label);
 	return {
 		title: item.category.label,
 		key: item.category.id,
 		folder: true,
-		children: []
+		children: [],
+		type: 'LifeCycle_Category'
 	}
 }
 
 function makeVariable(item) {
-	alert(item.label);
 	return {
 		title: item.label,
 		key: item.variable,
 		folder: item.children.length > 0,
-		children: []
+		children: [],
+		type: 'LifeCycle_Variable'
 	}
 }
 
@@ -150,7 +150,7 @@ function createDetailsPanel(variable, harmonizations, cohorts) {
 
 function showDetails(event, data) {
 	var keys = data.node.key.split("#")
-	if (data.node.isFolder() == false) {
+	if (data.node.data.type == 'LifeCycle_Variable') {
 		var variable = keys[keys.length -1];
 		
 		var futureDescription = $.Deferred();
@@ -187,7 +187,6 @@ function buildMenu(data) {
 		}
 		if (item.category !== undefined) {
 			if (isDifferent(category, item.category.id)) {
-				alert(item.category.id);
 				category = makeCategory(item);
 				if (category !== null) {
 					group.children.push(category);
@@ -215,15 +214,12 @@ function init() {
 	};
 
 	var groupsFuture = loadEntity('LifeCycle_Groups').progress(function(items) {
-		alert('Groups: ' + items.length);
 		data.groups = data.groups.concat(items);
 	});
 	var categoriesFuture = loadEntity('LifeCycle_Categories').progress(function(items) {
-		alert('Categories: ' + items.length);
 		data.categories = data.categories.concat(items);
 	});
 	var variablesFuture = loadEntity('LifeCycle_CoreVariables').progress(function(items) {
-		alert('Variables: ' + items.length);
 		data.variables = data.variables.concat(items);
 	});
 	$.when(groupsFuture, categoriesFuture, variablesFuture).done(function(groups, categories, variables) {
