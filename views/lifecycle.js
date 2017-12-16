@@ -30,7 +30,7 @@ function compareByPosition(lhs, rhs) {
 }
 
 function sortVariables(lhs, rhs) {
-	var group = compareByPosition(lhs.group, rhs.group);
+	var group = compareByPosition(lhs.section, rhs.section);
 	if (group !== 0) {
 		return group;
 	}
@@ -53,7 +53,7 @@ function resolveById(items, id, key) {
 
 function resolve(data) {
 	data.variables =  data.variables.map(function(item) {
-		item.group = resolveById(data.groups, item.group.id, 'id')
+		item.section = resolveById(data.sections, item.section.id, 'id')
 		if (item.category !== undefined) {
 			item.category = resolveById(data.categories, item.category.id, 'id')
 		}
@@ -64,11 +64,11 @@ function resolve(data) {
 
 function makeGroup(item) {
 	return {
-		title: item.group.label,
-		key: item.group.id,
+		title: item.section.label,
+		key: item.section.id,
 		folder: true,
 		children: [],
-		type: 'LifeCycle_Group'
+		type: 'LifeCycle_Section'
 	};
 }
 
@@ -88,9 +88,7 @@ function makeCategory(item) {
 function makeVariable(item) {
 	return {
 		title: item.label,
-		key: item.variable,
-		folder: item.children.length > 0,
-		children: [],
+		key: item.id,
 		type: 'LifeCycle_Variable'
 	}
 }
@@ -119,8 +117,7 @@ function createDetailsPanel(variable, harmonizations, cohorts) {
 	html += "<table id=\"harmonisations\" class=\"table table-striped table-condensed table-bordered molgenis-table\">"
 	html += tableRow(["Variable:", variable.variable]);
 	if (variable.values.length > 0) {
-		var values = variable.values.map(function(item) { return item.code + ": " + item.value }).join(", ")
-		html += tableRow(["Acceptable values:", values]);
+		html += tableRow(["Acceptable values:", '<pre>' + variable.values + '</pre>']);
 	}
 	html += tableRow(["Data type:", variable.datatype.label]);
 	html += tableRow(["Description:", variable.description]);
@@ -180,7 +177,7 @@ function buildMenu(data) {
 
 	var items = data.variables;
 	for (let item of items) {
-		if (isDifferent(group, item.group.id)) {
+		if (isDifferent(group, item.section.id)) {
 			group = makeGroup(item)
 			menu.push(group);
 			category = null;
@@ -208,13 +205,13 @@ function buildMenu(data) {
 
 function init() {
 	var data = {
-		groups: [],
+		sections: [],
 		categories: [],
 		variables: []
 	};
 
-	var groupsFuture = loadEntity('LifeCycle_Groups').progress(function(items) {
-		data.groups = data.groups.concat(items);
+	var sectionsFuture = loadEntity('LifeCycle_Sections').progress(function(items) {
+		data.sections = data.sections.concat(items);
 	});
 	var categoriesFuture = loadEntity('LifeCycle_Categories').progress(function(items) {
 		data.categories = data.categories.concat(items);
@@ -222,8 +219,8 @@ function init() {
 	var variablesFuture = loadEntity('LifeCycle_CoreVariables').progress(function(items) {
 		data.variables = data.variables.concat(items);
 	});
-	$.when(groupsFuture, categoriesFuture, variablesFuture).done(function(groups, categories, variables) {
-		data.groups = data.groups.concat(groups);
+	$.when(sectionsFuture, categoriesFuture, variablesFuture).done(function(sections, categories, variables) {
+		data.sections = data.sections.concat(sections);
 		data.categories = data.categories.concat(categories);
 		data.variables = data.variables.concat(variables);
 		data = resolve(data)
