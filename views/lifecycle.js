@@ -121,10 +121,12 @@ function createHarmonizationRow(item, cohorts, metadata) {
 }
 
 function createHarmonizationPopup(data, sources) {
-	let columns = ["variable", "description", "values", "datatype", "collectionType", "comments"];
-	let labels = ["Variable used", "Label/Description", "Acceptable values", "Data type", "Collection type", "Comments", "Description of harmonization"];
+	let columns = ["variable", "datatype", "description", "values", "collectionType", "comments"];
+	let labels = ["Variable used", "Data type", "Label/Description", "Acceptable values", "Collection type", "Comments"];
 	let metadata = extractMetadata(sources.meta.attributes);
-	let title = 'Harmonisation of ' + data.targetLabel + ' in ' + data.sourceLabel;
+	$("#report-harmonization-description").html(data.description)
+	let title = 'Harmonization of ' + data.targetLabel + ' in ' + data.sourceLabel;
+	$("#modal-title").html(title);
 	let content = createTable(labels, function() {
 		var rows = '';
 		for (let item of sources.items) {
@@ -132,7 +134,6 @@ function createHarmonizationPopup(data, sources) {
 		}
 		return rows;
 	});
-	$("#modal-title").html(title);
 	$("#modal-body-content").html(content);
 }
 
