@@ -86,16 +86,13 @@ function createCoreVariablesTable(data) {
 	let columns = ['variable', 'label', 'values', 'datatype', 'comments'];
 	let metadata = extractMetadata(data.meta.attributes);
 	let labels = columns.map(function(column) { return metadata[column].label; });
-	var html = '<div id="content-panel">';
-	html += createTable(labels, function() {
-		var rows;
+	return createTable(labels, function() {
+		var rows = '';
 		for (let item of data.items) {
 			rows += createRow(columns, item, metadata);
 		}
 		return rows;
 	});
-	html += '</div>';
-	return html;
 }
 
 function createHarmonizationRow(item, cohorts, metadata) {
@@ -105,21 +102,21 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	for (let cohort of cohorts) {
 		var harmonizationStatus;
 		if (harmonizedCohorts.indexOf(cohort) !== -1) {
-			harmonizationStatus = '<span color="green" fontsize="large">✓</span>';
+			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;">✓</span>';
 		} else {
-			harmonizationStatus = '<span color="red" fontsize="large">𐄂</span>';
+			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">𐄂</span>';
 		}
-		html += '<td>' + harmonizationStatus + '</td>'
+		html += '<td>' + harmonizationStatus + '</td>';
 	}
-	html += '</tr>'
+	html += '</tr>';
 	return html;
 }
 
 function createHarmonizationsTable(cohorts, data) {
 	let labels = ['Variable'].concat(cohorts);
 	let metadata = extractMetadata(data.meta.attributes);
-	var html = createTable(labels, function() {
-		var rows;
+	return createTable(labels, function() {
+		var rows = '';
 		for (let item of data.items) {
 			rows += createHarmonizationRow(item, cohorts, metadata);
 		}
@@ -128,12 +125,15 @@ function createHarmonizationsTable(cohorts, data) {
 }
 
 function createContentPanel(data) {
-	var html = createCoreVariablesTable(data);
 	var request = $.getJSON('/api/v2/LifeCycle_Cohorts');
 	request.then(function(response) {
 		let labelAttribute = response.meta.labelAttribute;
 		let cohorts = response.items.map(function(item) { return item[labelAttribute]});
-		return html + createHarmonizationsTable(cohorts, data);	
+		var html = '<div id="content-panel">';
+		html += createCoreVariablesTable(data);
+		html += createHarmonizationsTable(cohorts, data);
+		html += '</div>';
+		return html;
 	}).done(function(content) {
 		$("#content-panel").replaceWith(content);		
 	});
