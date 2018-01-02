@@ -109,7 +109,7 @@ function createHarmonizationRow(item, cohorts, metadata) {
 		var harmonizationStatus;
 		if (harmonizedCohorts[cohort] !== undefined) {
 			let id = harmonizedCohorts[cohort][idAttribute];
-			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;" onclick="loadHarmonizationPopup("' + id + '")">✓</span>';
+			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;" onclick="loadHarmonizationPopup(\'' + id + '\')">✓</span>';
 		} else {
 			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">𐄂</span>';
 		}
@@ -118,21 +118,42 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	html += '</tr>';
 	return html;
 }
+function createPopup(title, content) {
+	var html = '<div id="myModal" class="modal fade" role="dialog">';
+	html += '<div class="modal-dialog">';
+	html += '<div class="modal-content">';
+	html += '<div class="modal-header">';
+	html += '<button type="button" class="close" data-dismiss="modal">&times;</button>';
+	html += '<h4 class="modal-title">' + title + '</h4>';
+	html += '</div>';
+	html += '<div class="modal-body">';
+	html += content;
+	html += '</div>';
+	html += '<div class="modal-footer">';
+	html += '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
+	html += '</div>';
+	html += '</div>';
+	html += '</div>';
+	html += '</div>';
+	return html;
+}
 
 function createHarmonizationPopup(data, sources) {
 	let columns = ["variable", "description", "values", "datatype", "collectionType", "comments"];
 	let labels = ["Variable used", "Label/Description", "Acceptable values", "Data type", "Collection type", "Comments", "Description of harmonization"];
-	let metadata = extractMetadata(data.meta.attributes);
-	var html = '<div class="modal large in" id="entityReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1040; display: block; padding-left: 0px;">';
-	html += createTable(labels, function() {
+	let metadata = extractMetadata(sources.meta.attributes);
+	// var html = '<div class="modal large in" id="entityReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1040; display: block; padding-left: 0px;">';
+	let title = 'Harmonisation of ' + data.targetLabel + ' in ' + data.sourceLabel;
+	let content = createTable(labels, function() {
 		var rows = '';
 		for (let item of sources.items) {
 			rows += createRow(columns, item, metadata);
 		}
 		return rows;
 	});
+	var html = createPopup(title, content);
 	html += '</div>'
-	$("#content-panel").before(html);
+	$("#report").html(html);
 }
 
 
@@ -146,7 +167,7 @@ function loadSourceVariables(data) {
 
 function loadHarmonizationPopup(id) {
 	var request = $.getJSON('/api/v2/LifeCycle_Harmonizations/' + id);
-	request.done(createHarmonizationPopup);
+	request.done(loadSourceVariables);
 }
 
 function createHarmonizationsTable(cohorts, data) {
