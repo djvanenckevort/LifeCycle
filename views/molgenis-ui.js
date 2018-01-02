@@ -13,7 +13,7 @@ function makeLogo(logo, alt, url) {
 }
 
 function makeSignOutButton() {
-	return '<li class="nav-link"><form id="logout-form" method="post" action="/logout" class="navbar-form navbar-right"><button id="signout-button" type="button" class="btn btn-primary btn-sm">Sign out</button></form></li>'
+	return '<form id="logout-form" method="post" action="/logout" class="navbar-form navbar-right"><button id="signout-button" type="button" class="btn btn-primary btn-sm">Sign out</button></form>'
 }
 
 function makeSignInButton() {
@@ -82,7 +82,10 @@ function makeMenu() {
 					html += makeSubMenu(path, items[index])					
 				}
 			}
-			html += '</ul></div></div></nav>'
+			html += makeHelpMenu()
+			html += '</ul>'
+			html += makeSignInButton()
+			html += '</div></div></nav>'
 			$('#menu').replaceWith(html)
 		}
 	})
