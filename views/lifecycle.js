@@ -13,12 +13,14 @@ function convertMolgenisResponse(data) {
 
 function loadFromMolgenisEntity(event, data) {
 	var request;
-	if (data.node.key !== 'root') {
-		request = $.getJSON('/api/v2/UI_Menu?q=parent==' + data.node.key);
-	} else {
+	if (data === undefined) {
 		request = $.getJSON('/api/v2/UI_Menu?q=parent==%27%27');
+		return request.then(convertMolgenisResponse).promise();
+	} else {
+		request = $.getJSON('/api/v2/UI_Menu?q=parent==' + data.node.key);
 	}	
 	data.result = request.then(convertMolgenisResponse).promise();
+	return data;
 }
 
 function createTable(colums, rows) {
@@ -151,12 +153,7 @@ function loadContentPanel(event, data) {
 
 function init() {
 	$("#tree").fancytree({
-		source: [{
-			folder: true,
-			title: 'Core Variables',
-			lazy: true,
-			key: 'root'
-		}],
+		source: loadFromMolgenisEntity,
 		lazyLoad: loadFromMolgenisEntity,
 		activate: loadContentPanel,
 		icon: true
