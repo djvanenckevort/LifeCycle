@@ -109,7 +109,8 @@ function createHarmonizationRow(item, cohorts, metadata) {
 		var harmonizationStatus;
 		if (harmonizedCohorts[cohort] !== undefined) {
 			let id = harmonizedCohorts[cohort][idAttribute];
-			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;" onclick="loadHarmonizationPopup(\'' + id + '\')">✓</span>';
+			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;">'
+			harmonizationStatus += '<button class="btn btn-link" data-toggle="modal" data-target="#report" data-harmonization="' + id +'">✓</button></span>';
 		} else {
 			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">𐄂</span>';
 		}
@@ -118,31 +119,11 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	html += '</tr>';
 	return html;
 }
-function createPopup(title, content) {
-	var html = '<div id="myModal" class="modal fade" role="dialog">';
-	html += '<div class="modal-dialog">';
-	html += '<div class="modal-content">';
-	html += '<div class="modal-header">';
-	html += '<button type="button" class="close" data-dismiss="modal">&times;</button>';
-	html += '<h4 class="modal-title">' + title + '</h4>';
-	html += '</div>';
-	html += '<div class="modal-body">';
-	html += content;
-	html += '</div>';
-	html += '<div class="modal-footer">';
-	html += '<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>';
-	html += '</div>';
-	html += '</div>';
-	html += '</div>';
-	html += '</div>';
-	return html;
-}
 
 function createHarmonizationPopup(data, sources) {
 	let columns = ["variable", "description", "values", "datatype", "collectionType", "comments"];
 	let labels = ["Variable used", "Label/Description", "Acceptable values", "Data type", "Collection type", "Comments", "Description of harmonization"];
 	let metadata = extractMetadata(sources.meta.attributes);
-	// var html = '<div class="modal large in" id="entityReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1040; display: block; padding-left: 0px;">';
 	let title = 'Harmonisation of ' + data.targetLabel + ' in ' + data.sourceLabel;
 	let content = createTable(labels, function() {
 		var rows = '';
@@ -151,11 +132,9 @@ function createHarmonizationPopup(data, sources) {
 		}
 		return rows;
 	});
-	var html = createPopup(title, content);
-	html += '</div>'
-	$("#report").html(html);
+	$("#modal-title").html(title);
+	$("#modal-body-content").html(content);
 }
-
 
 function loadSourceVariables(data) {
 	var list = data.sources.map(function(source) { return source.id;}).join();
