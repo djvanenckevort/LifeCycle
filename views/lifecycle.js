@@ -100,11 +100,16 @@ function createCoreVariablesTable(data) {
 function createHarmonizationRow(item, cohorts, metadata) {
 	var html = '<tr><td>' + item.variable + '</td>';
 	let labelAttribute = metadata['harmonizations'].refEntity.labelAttribute;
-	let harmonizedCohorts = item.harmonizations.map(function(value) { return value[labelAttribute]; });
+	let idAttribute = metadata['harmonizations'].refEntity.idAttribute;
+	var harmonizedCohorts = {};
+	for (let harmonization of item.harmonizations) {
+		harmonizedCohorts[harmonization[labelAttribute]] = harmonization;
+	}
 	for (let cohort of cohorts) {
 		var harmonizationStatus;
-		if (harmonizedCohorts.indexOf(cohort) !== -1) {
-			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;">✓</span>';
+		if (harmonizedCohorts[cohort] !== undefined) {
+			let id = harmonizedCohorts[cohort][idAttribute];
+			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;" onclick="loadHarmonizationPopup("' + id + '")">✓</span>';
 		} else {
 			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">𐄂</span>';
 		}
@@ -112,6 +117,36 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	}
 	html += '</tr>';
 	return html;
+}
+
+function createHarmonizationPopup(data, sources) {
+	let columns = ["variable", "description", "values", "datatype", "collectionType", "comments"];
+	let labels = ["Variable used", "Label/Description", "Acceptable values", "Data type", "Collection type", "Comments", "Description of harmonization"];
+	let metadata = extractMetadata(data.meta.attributes);
+	var html = '<div class="modal large in" id="entityReportModal" tabindex="-1" aria-hidden="true" style="z-index: 1040; display: block; padding-left: 0px;">';
+	html += createTable(labels, function() {
+		var rows = '';
+		for (let item of sources.items) {
+			rows += createRow(columns, item, metadata);
+		}
+		return rows;
+	});
+	html += '</div>'
+	$("#content-panel").before(html);
+}
+
+
+function loadSourceVariables(data) {
+	var list = data.sources.map(function(source) { return source.id;}).join();
+	var request = $.getJSON('/api/v2/LifeCycle_SourceVariables?q=id=in=(' + list + ')');
+	request.done(function(response) {
+		createHarmonizationPopup(data, response);
+	})
+}
+
+function loadHarmonizationPopup(id) {
+	var request = $.getJSON('/api/v2/LifeCycle_Harmonizations/' + id);
+	request.done(createHarmonizationPopup);
 }
 
 function createHarmonizationsTable(cohorts, data) {
