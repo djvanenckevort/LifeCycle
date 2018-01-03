@@ -130,13 +130,20 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	return html;
 }
 
+function createHarmonizationPanel(data) {
+	var html = '';
+	html += '<pre>' + data.description + '</pre>'
+	html += '<div>Harmonization: ' + data.status.label + '</div><div><button class="btn">Show syntax</button></div>'
+	return html;
+}
+
 function createHarmonizationPopup(data, sources) {
 	let metadata = extractMetadata(sources.meta.attributes);
 	let columns = getVisibleColumns(sources.meta.attributes);
 	let labels = columns.map(function(column) { return metadata[column].label; });
-	$("#report-harmonization-description").html(data.description)
 	let title = 'Harmonization of ' + data.targetLabel + ' in ' + data.sourceLabel;
 	$("#modal-title").html(title);
+	$("#report-harmonization-description").html(createHarmonizationPanel(data))
 	let content = createTable('Variables used in harmonization', labels, function() {
 		var rows = '';
 		for (let item of sources.items) {
