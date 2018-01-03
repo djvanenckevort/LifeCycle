@@ -83,10 +83,18 @@ function extractMetadata(metadata) {
 	}
 	return dict
 }
-
+function getVisibleColumns(metadata) {
+	var columns = [];
+	for (let attribute of metadata) {
+		if (attribute.visible === true) {
+			columns.push(attribute.name);
+		}
+	}
+	return columns;
+}
 function createCoreVariablesTable(data) {
-	let columns = ['variable', 'label', 'values', 'datatype', 'comments'];
 	let metadata = extractMetadata(data.meta.attributes);
+	let columns = getVisibleColumns(data.meta.attributes);
 	let labels = columns.map(function(column) { return metadata[column].label; });
 	return createTable(labels, function() {
 		var rows = '';
@@ -121,9 +129,9 @@ function createHarmonizationRow(item, cohorts, metadata) {
 }
 
 function createHarmonizationPopup(data, sources) {
-	let columns = ["variable", "datatype", "description", "values", "collectionType", "comments"];
-	let labels = ["Variable used", "Data type", "Label/Description", "Acceptable values", "Collection type", "Comments"];
 	let metadata = extractMetadata(sources.meta.attributes);
+	let columns = getVisibleColumns(sources.meta.attributes);
+	let labels = columns.map(function(column) { return metadata[column].label; });
 	$("#report-harmonization-description").html(data.description)
 	let title = 'Harmonization of ' + data.targetLabel + ' in ' + data.sourceLabel;
 	$("#modal-title").html(title);
@@ -151,7 +159,7 @@ function loadHarmonizationPopup(id) {
 }
 
 function createHarmonizationsTable(cohorts, data) {
-	let labels = ['Variable'].concat(cohorts);
+	let labels = ['Variable'].concat(cohorts.sort());
 	let metadata = extractMetadata(data.meta.attributes);
 	return createTable(labels, function() {
 		var rows = '';
