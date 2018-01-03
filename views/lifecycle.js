@@ -93,11 +93,11 @@ function getVisibleColumns(metadata) {
 	}
 	return columns;
 }
-function createCoreVariablesTable(data) {
+function createCoreVariablesTable(category, data) {
 	let metadata = extractMetadata(data.meta.attributes);
 	let columns = getVisibleColumns(data.meta.attributes);
 	let labels = columns.map(function(column) { return metadata[column].label; });
-	let title = ''
+	let title = category
 	return createTable(title, labels, function() {
 		var rows = '';
 		for (let item of data.items) {
@@ -172,13 +172,13 @@ function createHarmonizationsTable(cohorts, data) {
 	});
 }
 
-function createContentPanel(data) {
+function createContentPanel(category, data) {
 	var request = $.getJSON('/api/v2/LifeCycle_Cohorts');
 	request.then(function(response) {
 		let labelAttribute = response.meta.labelAttribute;
 		let cohorts = response.items.map(function(item) { return item[labelAttribute]});
 		var html = '<div id="content-panel">';
-		html += createCoreVariablesTable(data);
+		html += createCoreVariablesTable(category, data);
 		html += createHarmonizationsTable(cohorts, data);
 		html += '</div>';
 		return html;
@@ -188,13 +188,14 @@ function createContentPanel(data) {
 }
 
 function loadContentPanel(event, data) {
-	var variables = data.node.data.variables;
+	let category = data.node.title;
+	let variables = data.node.data.variables;
 	if (variables === undefined || variables.length === 0) {
 		return;
 	}
-	var list = variables.map(function(v) { return v.id }).join();
+	let list = variables.map(function(v) { return v.id }).join();
 	var request = $.getJSON('/api/v2/LifeCycle_CoreVariables?q=id=in=(' + list +')');
-	request.done(createContentPanel);
+	request.done(function(data) { createContentPanel(category, data); });
 }
 
 function init() {
