@@ -1,13 +1,13 @@
 function convertMolgenisResponse(data) {
 	var menu = [];
-	for (let item of data.items) {
+	data.items.forEach(function(item) {
 		if (item.variables.length === 0) {
 			item.lazy = true;
 			item.folder = true;
 			delete item.variables;
 		}
 		menu.push(item);
-	}
+	});
 	return menu.sort(function(lhs, rhs) { return lhs.position - rhs.position });
 }
 
@@ -27,9 +27,9 @@ function createTable(title, colums, rows) {
 	var html = '<h4>' + title + '</h4>' 
 	html += '<table class="table table-striped table-condensed table-bordered molgenis-table">'
 	html += '<tr><thead>'
-	for (let column of colums) {
+	colums.forEach(function(column) {
 		html += '<th>' + column + '</th>'
-	}
+	});
 	html += '</thead></tr>'	
 	html += rows()
 	html += '</table>'
@@ -38,11 +38,11 @@ function createTable(title, colums, rows) {
 
 function createRow(columns, data, metadata) {
 	var html = '<tr>';
-	for (let column of columns) {
+	columns.forEach(function(column) {
 		let variable = data[column];
 		if (variable === undefined) {
 			html += '<td></td>';
-			continue;
+			return;
 		}
 		let fieldType = metadata[column].fieldType;
 		switch (fieldType) {
@@ -63,34 +63,34 @@ function createRow(columns, data, metadata) {
 			{
 				let labelAttribute = metadata[column].refEntity.labelAttribute;
 				html += '<td>'
-				for (let item of variable) {
+				variable.forEach(function(item) {
 					html += item[labelAttribute] + '<br>';
-				}
+				});
 				html += '</td>'
 			}
 			break;
 		default:
 			html += '<td>' + variable + '</td>';
 		}
-	}
+	});
 	html += '</tr>';
 	return html;
 }
 
 function extractMetadata(metadata) {
 	let dict = {};
-	for (let attribute of metadata) {
+	metadata.forEach(function(attribute) {
 		dict[attribute.name] = attribute;
-	}
+	});
 	return dict
 }
 function getVisibleColumns(metadata) {
 	var columns = [];
-	for (let attribute of metadata) {
+	metadata.forEach(function(attribute) {
 		if (attribute.visible === true) {
 			columns.push(attribute.name);
 		}
-	}
+	});
 	return columns;
 }
 function createCoreVariablesTable(category, data) {
@@ -100,9 +100,9 @@ function createCoreVariablesTable(category, data) {
 	let title = category
 	return createTable(title, labels, function() {
 		var rows = '';
-		for (let item of data.items) {
+		data.items.forEach(function(item) {
 			rows += createRow(columns, item, metadata);
-		}
+		});
 		return rows;
 	});
 }
@@ -112,20 +112,20 @@ function createHarmonizationRow(item, cohorts, metadata) {
 	let labelAttribute = metadata['harmonizations'].refEntity.labelAttribute;
 	let idAttribute = metadata['harmonizations'].refEntity.idAttribute;
 	var harmonizedCohorts = {};
-	for (let harmonization of item.harmonizations) {
+	item.harmonizations.forEach(function(harmonization) {
 		harmonizedCohorts[harmonization[labelAttribute]] = harmonization;
-	}
-	for (let cohort of cohorts) {
+	});
+	cohorts.forEach(function(cohort) {
 		var harmonizationStatus;
 		if (harmonizedCohorts[cohort] !== undefined) {
 			let id = harmonizedCohorts[cohort][idAttribute];
 			harmonizationStatus = '<span style="color: green; font-size: large; font-weight: bold;">'
-			harmonizationStatus += '<button class="btn btn-link" data-toggle="modal" data-target="#report" data-harmonization="' + id +'">✓</button></span>';
+			harmonizationStatus += '<button class="btn btn-link" data-toggle="modal" data-target="#report" data-harmonization="' + id +'">&#x2714;</button></span>';
 		} else {
-			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">𐄂</span>';
+			harmonizationStatus = '<span style="color: red; font-size: large; font-weight: bold;">&#x2717;</span>';
 		}
 		html += '<td>' + harmonizationStatus + '</td>';
-	}
+	});
 	html += '</tr>';
 	return html;
 }
@@ -146,9 +146,9 @@ function createHarmonizationPopup(data, sources) {
 	$("#report-harmonization-description").html(createHarmonizationPanel(data))
 	let content = createTable('Variables used in harmonization', labels, function() {
 		var rows = '';
-		for (let item of sources.items) {
+		sources.items.forEach(function(item) {
 			rows += createRow(columns, item, metadata);
-		}
+		});
 		return rows;
 	});
 	$("#modal-body-content").html(content);
@@ -172,9 +172,9 @@ function createHarmonizationsTable(cohorts, data) {
 	let metadata = extractMetadata(data.meta.attributes);
 	return createTable('Cohorts harmonizations', labels, function() {
 		var rows = '';
-		for (let item of data.items) {
+		data.items.forEach(function(item) {
 			rows += createHarmonizationRow(item, cohorts, metadata);
-		}
+		})
 		return rows;
 	});
 }
