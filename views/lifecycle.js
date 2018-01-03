@@ -23,8 +23,9 @@ function loadFromMolgenisEntity(event, data) {
 	return data;
 }
 
-function createTable(colums, rows) {
-	var html = '<table class="table table-striped table-condensed table-bordered molgenis-table">'
+function createTable(title, colums, rows) {
+	var html = '<h4>' + title + '</h4>' 
+	html += '<table class="table table-striped table-condensed table-bordered molgenis-table">'
 	html += '<tr><thead>'
 	for (let column of colums) {
 		html += '<th>' + column + '</th>'
@@ -96,7 +97,8 @@ function createCoreVariablesTable(data) {
 	let metadata = extractMetadata(data.meta.attributes);
 	let columns = getVisibleColumns(data.meta.attributes);
 	let labels = columns.map(function(column) { return metadata[column].label; });
-	return createTable(labels, function() {
+	let title = ''
+	return createTable(title, labels, function() {
 		var rows = '';
 		for (let item of data.items) {
 			rows += createRow(columns, item, metadata);
@@ -135,7 +137,7 @@ function createHarmonizationPopup(data, sources) {
 	$("#report-harmonization-description").html(data.description)
 	let title = 'Harmonization of ' + data.targetLabel + ' in ' + data.sourceLabel;
 	$("#modal-title").html(title);
-	let content = createTable(labels, function() {
+	let content = createTable('Variables used in harmonization', labels, function() {
 		var rows = '';
 		for (let item of sources.items) {
 			rows += createRow(columns, item, metadata);
@@ -161,7 +163,7 @@ function loadHarmonizationPopup(id) {
 function createHarmonizationsTable(cohorts, data) {
 	let labels = ['Variable'].concat(cohorts.sort());
 	let metadata = extractMetadata(data.meta.attributes);
-	return createTable(labels, function() {
+	return createTable('Cohorts harmonizations', labels, function() {
 		var rows = '';
 		for (let item of data.items) {
 			rows += createHarmonizationRow(item, cohorts, metadata);
